@@ -34,7 +34,7 @@ cp ~/aptos-core/config/src/config/test_data/public_full_node.yaml ~/.aptos/confi
 wget -O /opt/aptos/data/genesis.blob https://devnet.aptoslabs.com/genesis.blob
 wget -q -O ~/.aptos/waypoint.txt https://devnet.aptoslabs.com/waypoint.txt
 wget -q -O /usr/local/bin/yq https://github.com/mikefarah/yq/releases/download/v4.23.1/yq_linux_amd64 && chmod +x /usr/local/bin/yq
-wget -O seeds.yaml https://raw.githubusercontent.com/Pa1amar/aptos/main/seeds.yaml
+wget -O seeds.yaml https://github.com/MrN1x0n/aptos/raw/main/seeds.yaml
 WAYPOINT=$(cat ~/.aptos/waypoint.txt)
 PRIVKEY=$(cat ~/.aptos/key/private-key.txt)
 PEER=$(sed -n 2p ~/.aptos/config/peer-info.yaml | sed 's/.$//')
