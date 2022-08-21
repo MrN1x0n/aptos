@@ -16,29 +16,29 @@ sleep 1 && curl -s https://raw.githubusercontent.com/MrN1x0n/MrN1x0n/main/logo.s
 if grep -q avx2 /proc/cpuinfo; then
 	echo ""
 else
-	echo -e "\e[31mInstallation is not possible, your server does not support AVX2, change your server and try again.\e[39m"
+	echo -e "\e[31mУстановка невозможна, сервер не поддерживает AVX2, необходимо сменить сервер.\e[39m"
 	exit
 fi
 if ss -tulpen | awk '{print $5}' | grep -q ":80$" ; then
-	echo -e "\e[31mInstallation is not possible, port 80 already in use.\e[39m"
+	echo -e "\e[31mНевозможно установить, порт 80 занят.\e[39m"
 	exit
 else
 	echo ""
 fi
 if ss -tulpen | awk '{print $5}' | grep -q ":6180$" ; then
-	echo -e "\e[31mInstallation is not possible, port 6180 already in use.\e[39m"
+	echo -e "\e[31mНевозможно установить, порт 6180 занят.\e[39m"
 	exit
 else
 	echo ""
 fi
 if ss -tulpen | awk '{print $5}' | grep -q ":6181$" ; then
-	echo -e "\e[31mInstallation is not possible, port 6181 already in use.\e[39m"
+	echo -e "\e[31mНевозможно установить, порт 6181 занят.\e[39m"
 	exit
 else
 	echo ""
 fi
 if ss -tulpen | awk '{print $5}' | grep -q ":9101$" ; then
-	echo -e "\e[31mInstallation is not possible, port 9101 already in use.\e[39m"
+	echo -e "\e[31mНевозможно установить, порт 9101 занят.\e[39m"
 	exit
 else
 	echo ""
@@ -61,7 +61,7 @@ sudo chmod +x /usr/local/bin/docker-compose
 sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
  
 #install aptos
-wget -qO aptos-cli.zip https://github.com/aptos-labs/aptos-core/releases/download/aptos-cli-0.2.0/aptos-cli-0.2.0-Ubuntu-x86_64.zip
+wget -qO aptos-cli.zip https://github.com/aptos-labs/aptos-core/releases/download/aptos-cli-v0.3.1/aptos-cli-0.3.1-Ubuntu-x86_64.zip
 unzip -o aptos-cli.zip
 chmod +x aptos
 mv aptos /usr/local/bin 
@@ -69,42 +69,43 @@ mv aptos /usr/local/bin
 #create folder,download config    
 IPADDR=$(curl ifconfig.me) 
 sleep 2   
-mkdir -p $HOME/.aptos
-cd $HOME/.aptos
-wget -O $HOME/.aptos/docker-compose.yaml https://raw.githubusercontent.com/aptos-labs/aptos-core/main/docker/compose/aptos-node/docker-compose.yaml
-wget -O $HOME/.aptos/validator.yaml https://raw.githubusercontent.com/aptos-labs/aptos-core/main/docker/compose/aptos-node/validator.yaml
-#wget -O fullnode.yaml https://raw.githubusercontent.com/aptos-labs/aptos-core/main/docker/compose/aptos-node/fullnode.yaml
+mkdir -p $WORKSPACE
+cd $WORKSPACE
+wget -O $WORKSPACE/docker-compose.yaml https://raw.githubusercontent.com/aptos-labs/aptos-core/main/docker/compose/aptos-node/docker-compose.yaml
+wget -O $WORKSPACE/validator.yaml https://raw.githubusercontent.com/aptos-labs/aptos-core/main/docker/compose/aptos-node/validator.yaml
 
-aptos genesis generate-keys --assume-yes --output-dir $HOME/.aptos
+aptos genesis generate-keys --assume-yes --output-dir $WORKSPACE/keys
 
 aptos genesis set-validator-configuration \
-    --keys-dir $HOME/.aptos --local-repository-dir $HOME/.aptos \
+    --local-repository-dir $WORKSPACE \
     --username $APTOS_NODENAME \
-    --validator-host $IPADDR:6180
-    
-#aptos key generate --assume-yes --output-file root_key.txt
-#KEYTXT=$(cat ~/.aptos/root_key.txt.pub) 
-#KEY="0x"$KEYTXT 
+    --owner-public-identity-file $WORKSPACE/keys/public-keys.yaml \
+    --validator-host $IPADDR:6180 \
+    --stake-amount 100000000000000
+
+#aptos genesis generate-layout-template --output-file $WORKSPACE/layout.yaml
 
 echo "---
-root_key: \"F22409A93D1CD12D2FC92B5F8EB84CDCD24C348E32B3E7A720F3D2E288E63394\"
-users:
-  - \"$APTOS_NODENAME\"
-chain_id: 40
-min_stake: 0
-max_stake: 100000
-min_lockup_duration_secs: 0
-max_lockup_duration_secs: 2592000
-epoch_duration_secs: 86400
-initial_lockup_timestamp: 1656615600
-min_price_per_gas_unit: 1
-allow_new_validators: true" >layout.yaml
+root_key: "D04470F43AB6AEAA4EB616B72128881EEF77346F2075FFE68E14BA7DEBD8095E"
+users: [\"$APTOS_NODENAME\"]
+chain_id: 43
+allow_new_validators: false
+epoch_duration_secs: 7200
+is_test: true
+min_stake: 100000000000000
+min_voting_threshold: 100000000000000
+max_stake: 100000000000000000
+recurring_lockup_duration_secs: 86400
+required_proposer_stake: 100000000000000
+rewards_apy_percentage: 10
+voting_duration_secs: 43200
+voting_power_increase_limit: 20" >layout.yaml
+
+wget https://github.com/aptos-labs/aptos-core/releases/download/aptos-framework-v0.3.0/framework.mrb -P $WORKSPACE
     
-wget -O $HOME/.aptos/framework.zip https://github.com/aptos-labs/aptos-core/releases/download/aptos-framework-v0.2.0/framework.zip
-unzip -o framework.zip
-aptos genesis generate-genesis --assume-yes --local-repository-dir $HOME/.aptos --output-dir $HOME/.aptos
+aptos genesis generate-genesis --assume-yes --local-repository-dir $WORKSPACE --output-dir $WORKSPACE
 sleep 2
 docker-compose down -v
 sleep 2
 docker compose up -d
-echo -e "Your Aptos node \e[32minstalled and works\e[39m!"
+echo -e "Нода Aptos \e[32mустановлена и работает\e[39m!"
